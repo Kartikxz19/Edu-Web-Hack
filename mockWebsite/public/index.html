@@ -1,0 +1,82 @@
+<!-- public/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Vulnerable Demo Site</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Vulnerable Demo Website</h1>
+
+        <!-- SQL Injection vulnerable form -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">User Search (SQL Injectable)</h2>
+            <form id="userSearchForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium">Username:</label>
+                    <input type="text" id="usernameSearch" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2">
+                </div>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Search</button>
+            </form>
+            <div id="userResult" class="mt-4"></div>
+        </div>
+
+        <!-- XSS vulnerable form -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">Comment Section (XSS Vulnerable)</h2>
+            <form id="commentForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium">Add Comment:</label>
+                    <textarea id="commentInput" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-2"></textarea>
+                </div>
+                <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded">Post Comment</button>
+            </form>
+            <div id="comments" class="mt-4"></div>
+        </div>
+
+        <!-- Information disclosure section -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Server Info (Information Disclosure)</h2>
+            <button id="getServerInfo" class="bg-yellow-500 text-white px-4 py-2 rounded">
+                View Server Information
+            </button>
+            <div id="serverInfo" class="mt-4"></div>
+        </div>
+    </div>
+
+    <script>
+        // Handle user search
+        document.getElementById('userSearchForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('usernameSearch').value;
+            const response = await fetch(`/api/user?username=${username}`);
+            const data = await response.json();
+            document.getElementById('userResult').innerHTML = JSON.stringify(data, null, 2);
+        });
+
+        // Handle comments
+        document.getElementById('commentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const comment = document.getElementById('commentInput').value;
+            const response = await fetch('/api/comments', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ comment })
+            });
+            const data = await response.json();
+            document.getElementById('comments').innerHTML += `<div>${comment}</div>`;
+        });
+
+        // Handle server info
+        document.getElementById('getServerInfo').addEventListener('click', async () => {
+            const response = await fetch('/api/debug');
+            const data = await response.json();
+            document.getElementById('serverInfo').innerHTML = JSON.stringify(data, null, 2);
+        });
+    </script>
+</body>
+</html>
